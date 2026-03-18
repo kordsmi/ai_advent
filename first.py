@@ -19,6 +19,38 @@ class ChatApp(wx.Frame):
         self.system_prompt_entry = wx.TextCtrl(self.panel, size=(500, -1))
         self.sizer.Add(self.system_prompt_entry, 0, wx.EXPAND | wx.ALL, 5)
         
+        # Настройки GigaChat
+        settings_sizer = wx.FlexGridSizer(rows=2, cols=4, hgap=10, vgap=5)
+        
+        # Temperature
+        self.temperature_label = wx.StaticText(self.panel, label="Temperature:")
+        settings_sizer.Add(self.temperature_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.temperature_entry = wx.TextCtrl(self.panel, value="0.7", size=(100, -1))
+        settings_sizer.Add(self.temperature_entry, 0, wx.EXPAND)
+        
+        # Top_p
+        self.top_p_label = wx.StaticText(self.panel, label="Top_p:")
+        settings_sizer.Add(self.top_p_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.top_p_entry = wx.TextCtrl(self.panel, value="0.9", size=(100, -1))
+        settings_sizer.Add(self.top_p_entry, 0, wx.EXPAND)
+        
+        # Max_tokens
+        self.max_tokens_label = wx.StaticText(self.panel, label="Max_tokens:")
+        settings_sizer.Add(self.max_tokens_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.max_tokens_entry = wx.TextCtrl(self.panel, value="1024", size=(100, -1))
+        settings_sizer.Add(self.max_tokens_entry, 0, wx.EXPAND)
+        
+        # Repetition_penalty
+        self.repetition_penalty_label = wx.StaticText(self.panel, label="Repetition_penalty:")
+        settings_sizer.Add(self.repetition_penalty_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.repetition_penalty_entry = wx.TextCtrl(self.panel, value="1.0", size=(100, -1))
+        settings_sizer.Add(self.repetition_penalty_entry, 0, wx.EXPAND)
+        
+        settings_sizer.AddGrowableCol(1)
+        settings_sizer.AddGrowableCol(3)
+        
+        self.sizer.Add(settings_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        
         # Окно диалога
         self.dialog_text = wx.richtext.RichTextCtrl(
             self.panel, 
