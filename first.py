@@ -51,12 +51,31 @@ class ChatApp(wx.Frame):
         
         self.sizer.Add(settings_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
-        # Окно диалога
+        # Главный горизонтальныйSizer для диалога и системной информации
+        main_hbox = wx.BoxSizer(wx.HORIZONTAL)
+        
+        # Окно диалога (занимает 3/4 ширины)
         self.dialog_text = wx.richtext.RichTextCtrl(
             self.panel, 
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL
         )
-        self.sizer.Add(self.dialog_text, 1, wx.EXPAND | wx.ALL, 5)
+        main_hbox.Add(self.dialog_text, 3, wx.EXPAND | wx.ALL, 5)
+        
+        # Блок системной информации (занимает 1/4 ширины)
+        sys_info_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        self.sys_info_label = wx.StaticText(self.panel, label="Системная информация:")
+        sys_info_sizer.Add(self.sys_info_label, 0, wx.EXPAND | wx.ALL, 5)
+        
+        self.sys_info_text = wx.TextCtrl(
+            self.panel, 
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL
+        )
+        sys_info_sizer.Add(self.sys_info_text, 1, wx.EXPAND | wx.ALL, 5)
+        
+        main_hbox.Add(sys_info_sizer, 1, wx.EXPAND)
+        
+        self.sizer.Add(main_hbox, 1, wx.EXPAND)
         
         # Блок пользовательского ввода
         self.user_input_label = wx.StaticText(self.panel, label="Ваше сообщение:")
@@ -116,6 +135,18 @@ class ChatApp(wx.Frame):
 
         # Отправляем запрос в GigaChat
         try:
+            # Получаем значения параметров из полей ввода
+            temperature = float(self.temperature_entry.GetValue())
+            top_p = float(self.top_p_entry.GetValue())
+            max_tokens = int(self.max_tokens_entry.GetValue())
+            repetition_penalty = float(self.repetition_penalty_entry.GetValue())
+            
+            # Устанавливаем параметры в объект chat
+            self.chat.temperature = temperature
+            self.chat.top_p = top_p
+            self.chat.max_tokens = max_tokens
+            self.chat.repetition_penalty = repetition_penalty
+            
             response = giga.chat(self.chat)
             assistant_message = response.choices[0].message
 
@@ -124,6 +155,9 @@ class ChatApp(wx.Frame):
 
             # Отображаем ответ ассистента
             self.display_message(assistant_message.content, role="assistant")
+            
+            # Отображаем системную информацию
+            self.display_system_info(response)
 
         except Exception as e:
             print(self.chat)
@@ -147,6 +181,31 @@ class ChatApp(wx.Frame):
             
         self.dialog_text.EndTextColour()
         self.dialog_text.ShowPosition(self.dialog_text.GetLastPosition())
+        
+    def display_system_info(self, response):
+        """Отображение системной информации из ответа"""
+        if hasattr(response, 'usage'):
+            usage = response.usage
+            info = f"Prompt tokens: {usage.prompt_tokens}\n"
+            info += f"Completion tokens: {usage.completion_tokens}\n"
+            info += f"Total tokens: {usage.total_tokens}\n"
+            
+            if hasattr(usage, 'precached_prompt_tokens') and usage.precached_prompt_tokens:
+                info += f"Precached prompt tokens: {usage.precached_prompt_tokens}\n"
+            
+            info += f"\nModel: {response.model}\n"
+            info += f"Created: {response.created}\n"
+            
+            if hasattr(response, 'thread_id') and response.thread_id:
+                info += f"Thread ID: {response.thread_id}\n"
+            
+            if hasattr(response, 'message_id') and response.message_id:
+                info += f"Message ID: {response.message_id}\n"
+            
+            if hasattr(response, 'object_'):
+                info += f"Object: {response.object_}\n"
+            
+            self.sys_info_text.SetValue(info)
 
     def clear_session(self, event):
         """Очистка всей информации о текущей сессии"""
